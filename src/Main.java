@@ -1,4 +1,5 @@
 import java.util.Scanner;
+import service.LectorService;
 
 public class Main {
     public static void main(String[] args) {
@@ -19,10 +20,9 @@ public class Main {
             System.out.print("Seleccione una opción: ");
 
             int opcion = scanner.nextInt();
-            scanner.nextLine(); // Limpiar el buffer de entrada
+            scanner.nextLine(); 
             switch (opcion) {
                 case 1:
-                   
                     break;
                 case 2:
                     break;
@@ -33,8 +33,11 @@ public class Main {
                 case 5:
                     break;
                 case 6:
-                    break;
+                        LectorService lectorService = new LectorService();
+                        lectorService.reportarLectoresConPrestamosActivos();
+                        break;
                 case 7:
+                        
                     break;
                 case 8:
                     salir = true;
