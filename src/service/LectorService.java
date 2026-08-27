@@ -11,7 +11,12 @@ public class LectorService {
     private final String RUTA_LECTORES = "data/lectores.csv";
     private final String RUTA_PRESTAMOS = "data/prestamos.csv";
 
-    // Método para cruzar archivos y listar lectores con préstamos pendientes
+    //3.Eliminar lector (Física)
+    public void eliminarlector(){
+
+    }
+
+    //6. Reportar lectores con préstamos activos
     public void reportarLectoresConPrestamosActivos() {
         // 1. Guardaremos aquí los ID de los lectores que deben libros
         List<String> idsLectoresConPrestamos = obtenerIdsLectoresConPrestamosActivos();
