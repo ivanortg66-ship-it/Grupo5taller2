@@ -30,7 +30,7 @@ public class Main {
                 case 2:
                     break;
                 case 3:
-                     
+                     lectorService.eliminarlector();
                     break;
                 case 4:
                     break;
