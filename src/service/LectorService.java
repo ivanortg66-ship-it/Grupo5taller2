@@ -64,8 +64,6 @@ public class LectorService {
     }
 
 
-    }
-
     //6. Reportar lectores con préstamos activos
     public void reportarLectoresConPrestamosActivos() {
         // 1. Guardaremos aquí los ID de los lectores que deben libros
