@@ -6,6 +6,9 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         boolean salir = false;
 
+        LectorService lectorService = new LectorService();
+        PrestamoService prestamoService = new PrestamoService();
+
 
         while (!salir) {
             System.out.println("\n===== SISTEMA DE BIBLIOTECA =====");
@@ -27,15 +30,15 @@ public class Main {
                 case 2:
                     break;
                 case 3:
+                     
                     break;
                 case 4:
                     break;
                 case 5:
                     break;
                 case 6:
-                        LectorService lectorService = new LectorService();
-                        lectorService.reportarLectoresConPrestamosActivos();
-                        break;
+                    lectorService.reportarLectoresConPrestamosActivos();
+                    break;
                 case 7:
                         
                     break;

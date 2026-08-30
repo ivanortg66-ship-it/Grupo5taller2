@@ -13,6 +13,7 @@ public class LectorService {
 
     //3.Eliminar lector (Física)
     public void eliminarlector(){
+        
 
     }
 
