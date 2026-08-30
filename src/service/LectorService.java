@@ -12,8 +12,15 @@ public class LectorService {
     private final String RUTA_PRESTAMOS = "data/prestamos.csv";
 
     //3.Eliminar lector (Física)
-    public void eliminarlector(){
-        
+    public void eliminarlector(int id_lector) throws IOException {
+
+        List<lectores> lista = leerLectores();
+        // Verificar si el lector tiene préstamos asociados
+        List<String> idsConPrestamos = obtenerIdsLectoresConPrestamosActivos();
+        if (idsConPrestamos.contains(String.valueOf(id_lector))) {
+        System.out.println("No se puede eliminar: El lector con ID " + id_lector + " tiene préstamos pendientes.");
+        return;
+    }
 
     }
 
