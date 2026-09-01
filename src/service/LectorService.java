@@ -12,6 +12,7 @@ public class LectorService {
     private final String RUTA_LECTORES = "data/lectores.csv";
     private final String RUTA_PRESTAMOS = "data/prestamos.csv";
 
+    //3. Eliminar Lector
     public void eliminarlector(int id_lector) throws IOException {
 
         // Verificar si el lector tiene préstamos asociados
