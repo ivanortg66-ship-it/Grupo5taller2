@@ -12,6 +12,56 @@ public class LectorService {
     private final String RUTA_LECTORES = "data/lectores.csv";
     private final String RUTA_PRESTAMOS = "data/prestamos.csv";
 
+    public void eliminarlector(int id_lector) throws IOException {
+
+        // Verificar si el lector tiene préstamos asociados
+        List<String> idsConPrestamos = obtenerIdsLectoresConPrestamosActivos();
+        if (idsConPrestamos.contains(String.valueOf(id_lector))) {
+        System.out.println("No se puede eliminar: El lector con ID " + id_lector + " tiene préstamos activos.");
+        return;
+        }
+
+        try (BufferedReader br = new BufferedReader(new FileReader(RUTA_LECTORES))) {
+            String linea;
+            boolean esEncabezado = true;
+
+            while ((linea = br.readLine()) != null) {
+                if (esEncabezado) {
+                    lineasFiltradas.add(linea); // Conservar el encabezado
+                    esEncabezado = false;
+                    continue;
+                }
+
+                String[] datos = linea.split(",");
+                if (datos.length >= 4) {
+                    int idActual = Integer.parseInt(datos[0].trim());
+
+                    if (idActual == id_lector) {
+                        existeLector = true; // Confirma que el ID existe
+                    } else {
+                        // Si NO es el ID se conservamos la línea
+                        lineasFiltradas.add(linea);
+                    }
+                }
+            }
+        }
+        // Validar que el lector exista en el archivo
+        if (!existeLector) {
+            System.out.println("El lector con ID " + id_lector + " no existe en el sistema.");
+            return;
+        }
+
+        // Sobreescribir el archivo 
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_LECTORES))) {
+            for (String linea : lineasFiltradas) {
+                bw.write(linea);
+                bw.newLine();
+            }
+        }
+
+        System.out.println("Lector con ID " + id_lector + " eliminado exitosamente.");
+    }
+
     public void reportarLectoresConPrestamosActivos() {
         List<String> idsLectoresConPrestamos = obtenerIdsLectoresConPrestamosActivos();
 
