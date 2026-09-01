@@ -40,8 +40,11 @@ public class Main {
                     lectorService.reportarLectoresConPrestamosActivos();
                     break;
                 case 7:
-                        
-                    break;
+                        System.out.print("Ingrese el ID del lector que desea dar de baja: ");
+                        String idBaja = scanner.nextLine();
+                        LectorService serviceBaja = new LectorService();
+                        serviceBaja.darDeBajaLector(idBaja);
+                        break;
                 case 8:
                     salir = true;
                     System.out.println("Saliendo del sistema...");
