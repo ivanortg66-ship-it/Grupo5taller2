@@ -22,10 +22,14 @@ public class Main {
             System.out.println("8. Salir");
             System.out.print("Seleccione una opción: ");
 
+            int id_lector_cont = 0;
             int opcion = scanner.nextInt();
             scanner.nextLine(); 
             switch (opcion) {
                 case 1:
+                    
+                    lectorservice.crearlector();
+                    
                     break;
                 case 2:
                     break;
