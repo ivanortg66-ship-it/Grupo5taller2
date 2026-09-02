@@ -1,4 +1,5 @@
 package service;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.BufferedReader;
@@ -6,61 +7,49 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class LectorService {
 
+    // Rutas de los archivos
     private final String RUTA_LECTORES = "data/lectores.csv";
     private final String RUTA_PRESTAMOS = "data/prestamos.csv";
 
+    // Separador y formato del CSV
+    private final String SEPARADOR_CSV = ",";
+    private final String ESTADO_INACTIVO = "INACTIVO";
+
+    // Índices de columnas en lectores.csv
+    private final int COL_ID_LECTOR = 0;
+    private final int COL_NOMBRE = 1;
+    private final int COL_APELLIDO = 2;
+    private final int COL_TELEFONO = 3;
+    private final int COLUMNAS_MINIMAS_LECTOR = 4;
+
+    // Índices de columnas en prestamos.csv
+    private final int COL_ID_LECTOR_PRESTAMO = 1;
+    private final int COL_FECHA_DEVOLUCION = 4;
+    private final int COLUMNAS_MINIMAS_PRESTAMO = 4;
+
+    // Scanner
+    private Scanner scanner;
+
+    // Constructor
+    public LectorService(Scanner scanner) {
+        this.scanner = scanner;
+    }
+
+    public void registrarLector() {
+
+        
+    }
+
+    
     //3. Eliminar Lector
-    public void eliminarlector(int id_lector) throws IOException {
+    public void eliminarlector() throws IOException {
 
-        // Verificar si el lector tiene préstamos asociados
-        List<String> idsConPrestamos = obtenerIdsLectoresConPrestamosActivos();
-        if (idsConPrestamos.contains(String.valueOf(id_lector))) {
-        System.out.println("No se puede eliminar: El lector con ID " + id_lector + " tiene préstamos activos.");
-        return;
-        }
 
-        try (BufferedReader br = new BufferedReader(new FileReader(RUTA_LECTORES))) {
-            String linea;
-            boolean esEncabezado = true;
 
-            while ((linea = br.readLine()) != null) {
-                if (esEncabezado) {
-                    lineasFiltradas.add(linea); // Conservar el encabezado
-                    esEncabezado = false;
-                    continue;
-                }
-
-                String[] datos = linea.split(",");
-                if (datos.length >= 4) {
-                    int idActual = Integer.parseInt(datos[0].trim());
-
-                    if (idActual == id_lector) {
-                        existeLector = true; // Confirma que el ID existe
-                    } else {
-                        // Si NO es el ID se conservamos la línea
-                        lineasFiltradas.add(linea);
-                    }
-                }
-            }
-        }
-        // Validar que el lector exista en el archivo
-        if (!existeLector) {
-            System.out.println("El lector con ID " + id_lector + " no existe en el sistema.");
-            return;
-        }
-
-        // Sobreescribir el archivo 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_LECTORES))) {
-            for (String linea : lineasFiltradas) {
-                bw.write(linea);
-                bw.newLine();
-            }
-        }
-
-        System.out.println("Lector con ID " + id_lector + " eliminado exitosamente.");
     }
 
     //6. Reportar lectores con préstamos activos
@@ -74,7 +63,7 @@ public class LectorService {
         }
 
         System.out.println("\n--- LECTORES CON PRÉSTAMOS ACTIVOS ---");
-        
+
         try (BufferedReader br = new BufferedReader(new FileReader(RUTA_LECTORES))) {
             String linea;
             boolean esEncabezado = true;
@@ -82,15 +71,15 @@ public class LectorService {
             while ((linea = br.readLine()) != null) {
                 if (esEncabezado) {
                     esEncabezado = false;
-                    continue; 
+                    continue;
                 }
 
-                String[] datos = linea.split(",");
-                if (datos.length >= 4) {
-                    String idLector = datos[0].trim();
-                    String nombre = datos[1].trim();
-                    String apellido = datos[2].trim();
-                    String telefono = datos[3].trim();
+                String[] datos = linea.split(SEPARADOR_CSV);
+                if (datos.length >= COLUMNAS_MINIMAS_LECTOR) {
+                    String idLector = datos[COL_ID_LECTOR].trim();
+                    String nombre = datos[COL_NOMBRE].trim();
+                    String apellido = datos[COL_APELLIDO].trim();
+                    String telefono = datos[COL_TELEFONO].trim();
 
                     if (idsLectoresConPrestamos.contains(idLector)) {
                         System.out.println("ID: " + idLector + " | Nombre: " + nombre + " " + apellido + " | Teléfono: " + telefono);
@@ -101,7 +90,7 @@ public class LectorService {
             System.out.println("Error al leer el archivo de lectores: " + e.getMessage());
         }
     }
-
+    //Listar o Reportar lectores con préstamos activos
     private List<String> obtenerIdsLectoresConPrestamosActivos() {
         List<String> idsActivos = new ArrayList<>();
 
@@ -115,11 +104,11 @@ public class LectorService {
                     continue;
                 }
 
-                String[] datos = linea.split(",");
-                if (datos.length >= 4) {
-                    String idLector = datos[1].trim();
-                    
-                    boolean estaPendiente = (datos.length < 5) || datos[4].trim().isEmpty();
+                String[] datos = linea.split(SEPARADOR_CSV);
+                if (datos.length >= COLUMNAS_MINIMAS_PRESTAMO) {
+                    String idLector = datos[COL_ID_LECTOR_PRESTAMO].trim();
+
+                    boolean estaPendiente = (datos.length <= COL_FECHA_DEVOLUCION) || datos[COL_FECHA_DEVOLUCION].trim().isEmpty();
 
                     if (estaPendiente && !idsActivos.contains(idLector)) {
                         idsActivos.add(idLector);
@@ -131,8 +120,10 @@ public class LectorService {
         }
 
         return idsActivos;
-    }   
+    }
 
+
+    //Eliminar o Dar de Baja a un lector (Eliminación Lógica)
     public void darDeBajaLector(String idLector) {
         List<String> lectoresConPrestamos = obtenerIdsLectoresConPrestamosActivos();
         if (lectoresConPrestamos.contains(idLector)) {
@@ -149,23 +140,23 @@ public class LectorService {
 
             while ((linea = br.readLine()) != null) {
                 if (esEncabezado) {
-                    lineasActualizadas.add(linea); 
+                    lineasActualizadas.add(linea);
                     esEncabezado = false;
                     continue;
                 }
 
-                String[] datos = linea.split(",");
-                if (datos.length >= 4) {
-                    String id = datos[0].trim();
+                String[] datos = linea.split(SEPARADOR_CSV);
+                if (datos.length >= COLUMNAS_MINIMAS_LECTOR) {
+                    String id = datos[COL_ID_LECTOR].trim();
 
                     if (id.equals(idLector)) {
                         lectorEncontrado = true;
-                        String nombre = datos[1].trim();
-                        String apellido = datos[2].trim();
-                        String telefono = datos[3].trim();
-                        
-                        // Reescribimos la línea marcándola como INACTIVO
-                        lineasActualizadas.add(id + "," + nombre + "," + apellido + "," + telefono + ",INACTIVO");
+                        String nombre = datos[COL_NOMBRE].trim();
+                        String apellido = datos[COL_APELLIDO].trim();
+                        String telefono = datos[COL_TELEFONO].trim();
+
+                        // Reescribir la línea marcándola como inactivp
+                        lineasActualizadas.add(id + SEPARADOR_CSV + nombre + SEPARADOR_CSV + apellido + SEPARADOR_CSV + telefono + SEPARADOR_CSV + ESTADO_INACTIVO);
                     } else {
                         lineasActualizadas.add(linea);
                     }
@@ -191,4 +182,4 @@ public class LectorService {
             System.out.println("Error al actualizar lectores.csv: " + e.getMessage());
         }
     }
-}
+}                       
