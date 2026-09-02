@@ -45,11 +45,101 @@ public class LectorService {
     }
 
     
-    //3. Eliminar Lector
+    // 3. Eliminar Lector
     public void eliminarlector() throws IOException {
+        String idLector = "";
+        boolean lectorEncontrado = false;
 
+        // Solicitar y validar la existencia del ID
+        while (true) {
+            lectorEncontrado = false; // Resetear en cada intento
 
+            System.out.print("Ingrese el ID del lector que desea eliminar: ");
+            idLector = scanner.nextLine().trim();
 
+            // Verifica que no esté vacío
+            if (idLector.isEmpty()) {
+                System.out.println("El ID del lector no puede estar vacío. Intente de nuevo.\n");
+                continue; // Permite volver a intentar en lugar de salir del método
+            }
+
+            //Buscar si existe el lector
+            try (BufferedReader br = new BufferedReader(new FileReader(RUTA_LECTORES))) {
+                String linea;
+                boolean esEncabezado = true;
+
+                while ((linea = br.readLine()) != null) {
+                    if (esEncabezado) {
+                        esEncabezado = false;
+                        continue;
+                    }
+
+                    String[] datos = linea.split(SEPARADOR_CSV);
+
+                    if (datos.length >= COLUMNAS_MINIMAS_LECTOR) {
+                        String id = datos[COL_ID_LECTOR].trim();
+                        if (id.equals(idLector)) {
+                            lectorEncontrado = true;
+                            break;
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                System.out.println("Error al leer lectores.csv: " + e.getMessage());
+                return;
+            }
+
+            //Si no existe, volver a pedirlo
+            if (!lectorEncontrado) {
+                System.out.println("No se encontró ningún lector con el ID: " + idLector);
+                System.out.println("Ingrese nuevamente el ID.\n");
+                continue;
+            }
+
+            break; // ID válido y encontrado, salir del bucle de validación
+        }
+
+        //Filtrar los lectores a conservar
+        List<String> lineasActualizadas = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(RUTA_LECTORES))) {
+            String linea;
+            boolean esEncabezado = true;
+
+            while ((linea = br.readLine()) != null) {
+                if (esEncabezado) {
+                    lineasActualizadas.add(linea);
+                    esEncabezado = false;
+                    continue;
+                }
+
+                String[] datos = linea.split(SEPARADOR_CSV);
+
+                if (datos.length >= COLUMNAS_MINIMAS_LECTOR) {
+                    String id = datos[COL_ID_LECTOR].trim();
+
+                    // Conservar todos los lectores excepto el especificado
+                    if (!id.equals(idLector)) {
+                        lineasActualizadas.add(linea);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error al procesar lectores.csv: " + e.getMessage());
+            return;
+        }
+
+        //Sobreescribir el archivo con la lista actualizada
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(RUTA_LECTORES))) {
+            for (String linea : lineasActualizadas) {
+                bw.write(linea);
+                bw.newLine();
+            }
+
+            System.out.println("El lector con ID " + idLector + " fue eliminado exitosamente.");
+        } catch (IOException e) {
+            System.out.println("Error al actualizar lectores.csv: " + e.getMessage());
+        }
     }
 
     //6. Reportar lectores con préstamos activos

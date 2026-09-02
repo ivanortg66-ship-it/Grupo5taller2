@@ -1,14 +1,15 @@
 import java.util.Scanner;
 import service.LectorService;
+import service.PrestamoService;
 
 public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         boolean salir = false;
 
-        LectorService lectorService = new LectorService();
+        // Le pasamos el objeto scanner al constructor de LectorService
+        LectorService lectorService = new LectorService(scanner);
         PrestamoService prestamoService = new PrestamoService();
-
 
         while (!salir) {
             System.out.println("\n===== SISTEMA DE BIBLIOTECA =====");
@@ -24,15 +25,21 @@ public class Main {
 
             int opcion = scanner.nextInt();
             scanner.nextLine(); 
+
             switch (opcion) {
                 case 1:
                     break;
                 case 2:
                     break;
                 case 3:
-                     lectorService.eliminarlector();
+                    try {
+                        lectorService.eliminarlector();
+                    } catch (Exception e) {
+                        System.out.println("Error al eliminar lector: " + e.getMessage());
+                    }
                     break;
                 case 4:
+                    prestamoService.registrarPrestamo(scanner);
                     break;
                 case 5:
                     break;
@@ -40,11 +47,11 @@ public class Main {
                     lectorService.reportarLectoresConPrestamosActivos();
                     break;
                 case 7:
-                        System.out.print("Ingrese el ID del lector que desea dar de baja: ");
-                        String idBaja = scanner.nextLine();
-                        LectorService serviceBaja = new LectorService();
-                        serviceBaja.darDeBajaLector(idBaja);
-                        break;
+                    System.out.print("Ingrese el ID del lector que desea dar de baja: ");
+                    String idBaja = scanner.nextLine();
+                    // Usamos la instancia existente
+                    lectorService.darDeBajaLector(idBaja);
+                    break;
                 case 8:
                     salir = true;
                     System.out.println("Saliendo del sistema...");
