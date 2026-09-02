@@ -2,25 +2,25 @@ package service;
 
 import model.Lector;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 public class LectorService {
 
@@ -37,6 +37,7 @@ public class LectorService {
     private final int COL_NOMBRE = 1;
     private final int COL_APELLIDO = 2;
     private final int COL_TELEFONO = 3;
+    private final int COL_ESTADO = 4;
     private final int COLUMNAS_MINIMAS_LECTOR = 4;
 
     // Índices de columnas en prestamos.csv
@@ -52,12 +53,7 @@ public class LectorService {
         this.scanner = scanner;
     }
 
-    // NOTA: el método registrarLector() original estaba vacío (dead code).
-    // La lógica real vive en crearLector(nombre, apellido, telefono).
-    // Si algo en Main llamaba a registrarLector(), actualízalo para llamar
-    // a crearLector(...) en su lugar.
-
-    //1. Registrar Lector
+    // 1. Registrar Lector
     public void crearLector(String nombre, String apellido, String telefono) {
         int nuevoId = generarNuevoId();
         Lector nuevo = new Lector(nuevoId, nombre, apellido, telefono);
@@ -70,12 +66,9 @@ public class LectorService {
 
             // Si el archivo no existía, escribimos primero el encabezado
             if (!archivoExiste) {
-                bw.write("id_lector,nombre,apellido,telefono");
+                bw.write("id_lector,nombre,apellido,telefono,estado");
                 bw.newLine();
             } else if (!terminaConSaltoDeLinea(archivo)) {
-                // Si el archivo ya tenia contenido pero la ultima linea
-                // no terminaba en salto de linea, lo agregamos primero
-                // para no pegar el nuevo registro a la linea anterior
                 bw.newLine();
             }
 
@@ -90,7 +83,7 @@ public class LectorService {
         }
     }
 
-    // Verifica si el ultimo byte del archivo es un salto de linea
+    // Verifica si el último byte del archivo es un salto de línea
     private boolean terminaConSaltoDeLinea(File archivo) throws IOException {
         if (archivo.length() == 0) {
             return true;
@@ -102,7 +95,7 @@ public class LectorService {
         }
     }
 
-    // Calcula el siguiente ID disponible (id_lector maximo existente + 1)
+    // Calcula el siguiente ID disponible
     private int generarNuevoId() {
         File archivo = new File(RUTA_LECTORES);
         if (!archivo.exists()) {
@@ -121,7 +114,7 @@ public class LectorService {
                 }
                 if (linea.trim().isEmpty()) continue;
 
-                String[] datos = linea.split(",");
+                String[] datos = linea.split(SEPARADOR_CSV);
                 if (datos.length >= 1) {
                     try {
                         int idActual = Integer.parseInt(datos[0].trim());
@@ -146,7 +139,7 @@ public class LectorService {
         File archivo = new File(RUTA_LECTORES);
 
         if (!archivo.exists()) {
-            return true; // no existe el archivo, entonces el id no existe aun
+            return true;
         }
 
         try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
@@ -160,7 +153,7 @@ public class LectorService {
                 }
                 if (linea.trim().isEmpty()) continue;
 
-                String[] datos = linea.split(",");
+                String[] datos = linea.split(SEPARADOR_CSV);
                 try {
                     lista.add(Integer.parseInt(datos[0].trim()));
                 } catch (NumberFormatException e) {
@@ -174,19 +167,19 @@ public class LectorService {
 
         for (int idExistente : lista) {
             if (id == idExistente) {
-                System.out.println("El id ya existe.");
+                System.out.println("El ID ya existe.");
                 return false;
             }
         }
         return true;
     }
 
-    //2. Listar Lectores
+    // 2. Listar Lectores Activos
     public void listarLectores() {
         File archivo = new File(RUTA_LECTORES);
 
         if (!archivo.exists()) {
-            System.out.println("No hay lectores registrados todavia.");
+            System.out.println("No hay lectores registrados todavía.");
             return;
         }
 
@@ -195,7 +188,7 @@ public class LectorService {
             boolean esEncabezado = true;
             boolean hayLectores = false;
 
-            System.out.println("\n--- LISTADO DE LECTORES ---");
+            System.out.println("\n--- LISTADO DE LECTORES ACTIVOS ---");
 
             while ((linea = br.readLine()) != null) {
                 if (esEncabezado) {
@@ -204,20 +197,26 @@ public class LectorService {
                 }
                 if (linea.trim().isEmpty()) continue;
 
-                String[] datos = linea.split(",");
+                String[] datos = linea.split(SEPARADOR_CSV);
                 if (datos.length >= COLUMNAS_MINIMAS_LECTOR) {
-                    System.out.println(
-                        "ID: " + datos[COL_ID_LECTOR].trim() +
-                        " | Nombre: " + datos[COL_NOMBRE].trim() +
-                        " | Apellido: " + datos[COL_APELLIDO].trim() +
-                        " | Telefono: " + datos[COL_TELEFONO].trim()
-                    );
-                    hayLectores = true;
+                    String estado = (datos.length > COL_ESTADO) ? datos[COL_ESTADO].trim() : "ACTIVO";
+                    
+                    // Solo mostramos lectores activos en la lista principal
+                    if (!ESTADO_INACTIVO.equalsIgnoreCase(estado)) {
+                        System.out.println(
+                            "ID: " + datos[COL_ID_LECTOR].trim() +
+                            " | Nombre: " + datos[COL_NOMBRE].trim() +
+                            " | Apellido: " + datos[COL_APELLIDO].trim() +
+                            " | Teléfono: " + datos[COL_TELEFONO].trim() +
+                            " | Estado: " + estado
+                        );
+                        hayLectores = true;
+                    }
                 }
             }
 
             if (!hayLectores) {
-                System.out.println("No hay lectores registrados.");
+                System.out.println("No hay lectores activos registrados.");
             }
 
         } catch (IOException e) {
@@ -225,18 +224,16 @@ public class LectorService {
         }
     }
 
-    // 3. Eliminar Lector
+    // 3. Eliminar Lector (Físico)
     public void eliminarLector() throws IOException {
         String idLector;
         boolean lectorEncontrado;
         List<String> lineasActualizadas;
 
-        // Solicitar y validar la existencia del ID, y filtrar en la misma pasada
         while (true) {
             System.out.print("Ingrese el ID del lector que desea eliminar: ");
             idLector = scanner.nextLine().trim();
 
-            // Verifica que no esté vacío
             if (idLector.isEmpty()) {
                 System.out.println("El ID del lector no puede estar vacío. Intente de nuevo.\n");
                 continue;
@@ -245,7 +242,6 @@ public class LectorService {
             lectorEncontrado = false;
             lineasActualizadas = new ArrayList<>();
 
-            // Buscar y filtrar en una sola lectura del archivo
             try (BufferedReader br = new BufferedReader(new InputStreamReader(
                     new FileInputStream(RUTA_LECTORES), StandardCharsets.UTF_8))) {
                 String linea;
@@ -258,9 +254,8 @@ public class LectorService {
                         continue;
                     }
 
-                    String[] datos = linea.split(SEPARADOR_CSV, -1); // -1 conserva campos vacíos al final
+                    String[] datos = linea.split(SEPARADOR_CSV, -1);
 
-                    // Si la línea no tiene columnas suficientes, se conserva tal cual (no se descarta)
                     if (datos.length < COLUMNAS_MINIMAS_LECTOR) {
                         lineasActualizadas.add(linea);
                         continue;
@@ -270,7 +265,6 @@ public class LectorService {
 
                     if (id.equals(idLector)) {
                         lectorEncontrado = true;
-                        // No se agrega esta línea: es la que se va a eliminar
                     } else {
                         lineasActualizadas.add(linea);
                     }
@@ -286,10 +280,9 @@ public class LectorService {
                 continue;
             }
 
-            break; // ID válido y encontrado, salir del bucle de validación
+            break;
         }
 
-        // Confirmación antes de eliminar
         System.out.print("¿Está seguro que desea eliminar el lector con ID " + idLector + "? (S/N): ");
         String confirmacion = scanner.nextLine().trim();
         if (!confirmacion.equalsIgnoreCase("S")) {
@@ -297,7 +290,6 @@ public class LectorService {
             return;
         }
 
-        // Escribir a un archivo temporal y luego reemplazar el original (escritura segura)
         Path rutaOriginal = Paths.get(RUTA_LECTORES);
         Path rutaTemporal = Paths.get(RUTA_LECTORES + ".tmp");
 
@@ -322,8 +314,7 @@ public class LectorService {
         }
     }
 
-    //6. Reportar lectores con préstamos activos
-
+    // 4. Reportar lectores con préstamos activos
     public void reportarLectoresConPrestamosActivos() {
         List<String> idsLectoresConPrestamos = obtenerIdsLectoresConPrestamosActivos();
 
@@ -361,11 +352,14 @@ public class LectorService {
         }
     }
 
-    //Listar o Reportar lectores con préstamos activos
+    // Auxiliar: Obtener préstamos activos
     private List<String> obtenerIdsLectoresConPrestamosActivos() {
         List<String> idsActivos = new ArrayList<>();
+        File archivo = new File(RUTA_PRESTAMOS);
 
-        try (BufferedReader br = new BufferedReader(new FileReader(RUTA_PRESTAMOS))) {
+        if (!archivo.exists()) return idsActivos;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
             String linea;
             boolean esEncabezado = true;
 
@@ -378,7 +372,6 @@ public class LectorService {
                 String[] datos = linea.split(SEPARADOR_CSV);
                 if (datos.length >= COLUMNAS_MINIMAS_PRESTAMO) {
                     String idLector = datos[COL_ID_LECTOR_PRESTAMO].trim();
-
                     boolean estaPendiente = (datos.length <= COL_FECHA_DEVOLUCION) || datos[COL_FECHA_DEVOLUCION].trim().isEmpty();
 
                     if (estaPendiente && !idsActivos.contains(idLector)) {
@@ -393,7 +386,7 @@ public class LectorService {
         return idsActivos;
     }
 
-    //Eliminar o Dar de Baja a un lector (Eliminación Lógica)
+    // 5. Dar de Baja a un lector (Eliminación Lógica)
     public void darDeBajaLector(String idLector) {
         List<String> lectoresConPrestamos = obtenerIdsLectoresConPrestamosActivos();
         if (lectoresConPrestamos.contains(idLector)) {
@@ -418,8 +411,6 @@ public class LectorService {
 
                 String[] datos = linea.split(SEPARADOR_CSV);
 
-                // Las líneas malformadas (menos columnas de las esperadas) se
-                // conservan tal cual en lugar de perderse silenciosamente.
                 if (datos.length < COLUMNAS_MINIMAS_LECTOR) {
                     lineasActualizadas.add(linea);
                     continue;
@@ -433,13 +424,11 @@ public class LectorService {
                     String apellido = datos[COL_APELLIDO].trim();
                     String telefono = datos[COL_TELEFONO].trim();
 
-                    // Si ya tiene una 5ta columna con el estado INACTIVO, no hacemos nada más
                     if (datos.length > COLUMNAS_MINIMAS_LECTOR
                             && ESTADO_INACTIVO.equalsIgnoreCase(datos[COLUMNAS_MINIMAS_LECTOR].trim())) {
                         yaInactivo = true;
                         lineasActualizadas.add(linea);
                     } else {
-                        // Reescribir la línea marcándola como inactivo
                         lineasActualizadas.add(id + SEPARADOR_CSV + nombre + SEPARADOR_CSV + apellido + SEPARADOR_CSV + telefono + SEPARADOR_CSV + ESTADO_INACTIVO);
                     }
                 } else {
