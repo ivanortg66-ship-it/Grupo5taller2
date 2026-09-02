@@ -1,5 +1,7 @@
 package service;
 
+import model.Lector;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
